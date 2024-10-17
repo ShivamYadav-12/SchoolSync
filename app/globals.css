@@ -38,6 +38,9 @@
     background-color: #dbdafc !important;
     box-shadow: none !important;
 }
+.rbc-time-view{
+    border-color: #eee !important;
+}
 .rbc-time-header{
     display: none !important;
 }
@@ -90,5 +93,5 @@
 }
 .rbc-event-label{
     color: gray  !important;
-    margin-bottom:5px !important ;
+    margin-bottom:5px !important;
 }

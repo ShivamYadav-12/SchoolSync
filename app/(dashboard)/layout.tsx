@@ -20,9 +20,9 @@ export default function DashboardLayout({
 }>) {
   return (
    
-      <div className=" h-screen flex">
-        
-        <div className="w-[14%] lg:w-[16%] xl:w-[14%] md:w-[8%]">
+      <div className="h-screen flex">
+        {/* {left} */}
+        <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] ">
         <div>
         <Link  className="flex items-center justify-center gap-2 lg:justify-start " href="/">
         <Image src="/logo.png" alt ="" width ={30} height={30}/>
@@ -30,8 +30,8 @@ export default function DashboardLayout({
         </Link>
         </div>
          <Menu/>
-      
-        </div>
+       </div>
+       {/* {right} */}
         <div className="w-[86%] bg-[#F7F8FA] lg:w-[84%] xl:w-[86%] md:w-[92%] overflow-scroll flex flex-col">
          <Navbar/>
          {children}
