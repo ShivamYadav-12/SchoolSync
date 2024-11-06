@@ -121,11 +121,11 @@ const SingleTeacherPage = () =>
         <div className="bg-white rounded-md">
         <h1 className="font-semibold text-xl">Shortcuts</h1>
         <div className=" mt-4 flex flex-wrap gap-4 text-xs text-gray-500">
-        <Link href="/" className="p-3 rounded-md bg-blue-100">Teacher&apos;s Classes</Link>
-        <Link href="/" className="p-3 rounded-md bg-yellow-100">Teacher&apos;s Exams</Link>
-        <Link href="/" className="p-3 rounded-md bg-pink-100">Teacher&apos;s Assignments</Link>
-        <Link href="/" className="p-3 rounded-md bg-purple-100">Teacher&apos;s Lessons</Link>
-        <Link href="/" className="p-3 rounded-md bg-blue-100">Teacher&apos;s Students</Link>
+        <Link href={`/lists/classes?teacherId=${"teacher2"}`} className="p-3 rounded-md bg-blue-100">Teacher&apos;s Classes</Link>
+        <Link href={`/lists/exams?teacherId=${"teacher2"}`} className="p-3 rounded-md bg-yellow-100">Teacher&apos;s Exams</Link>
+        <Link href={`/lists/assignments?teacherId=${"teacher2"}`} className="p-3 rounded-md bg-pink-100">Teacher&apos;s Assignments</Link>
+        <Link href={`/lists/lessons?teacherId=${"teacher2"}`} className="p-3 rounded-md bg-purple-100">Teacher&apos;s Lessons</Link>
+        <Link href={`/lists/students?teacherId=${"teacher2"}`} className="p-3 rounded-md bg-blue-100">Teacher&apos;s Students</Link>
         
         </div>
         </div>

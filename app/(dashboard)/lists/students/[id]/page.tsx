@@ -103,11 +103,11 @@ const SingleStudentPage = () =>
         <div className="bg-white rounded-md">
         <h1 className="font-semibold text-xl">Shortcuts</h1>
         <div className=" mt-4 flex flex-wrap gap-4 text-xs text-gray-500">
-        <Link href="/" className="p-3 rounded-md bg-blue-100">Student&apos;s Results</Link>
-        <Link href="/" className="p-3 rounded-md bg-yellow-100">Student&apos;s Teachers</Link>
-        <Link href="/" className="p-3 rounded-md bg-pink-100">Student&apos;s Assignments</Link>
-        <Link href="/" className="p-3 rounded-md bg-purple-100">Student&apos;s Lessons</Link>
-        <Link href="/" className="p-3 rounded-md bg-blue-100">Student&apos;s Students</Link>
+        <Link href="/lists/results?studentId=${2}" className="p-3 rounded-md bg-blue-100">Student&apos;s Results</Link>
+        <Link href={`/lists/teachers?classId=${2}`}className="p-3 rounded-md bg-yellow-100">Student&apos;s Teachers</Link>
+        <Link href="/lists/assignments?classId=${2}" className="p-3 rounded-md bg-pink-100">Student&apos;s Assignments</Link>
+        <Link href="/lists/lessons?classId=${2}" className="p-3 rounded-md bg-purple-100">Student&apos;s Lessons</Link>
+        <Link href="/lists/exams?classId=${2}" className="p-3 rounded-md bg-blue-100">Student&apos;s Exam</Link>
         
         </div>
         </div>

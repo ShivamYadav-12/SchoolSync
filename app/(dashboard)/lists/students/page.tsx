@@ -2,22 +2,14 @@ import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import { role, studentsData } from "@/app/lib/data";
+import { role } from "@/app/lib/data";
+import prisma from "@/app/lib/prisma";
+import { ITEM_PER_PAGE } from "@/app/lib/setting";
+import { Class, Prisma, Student } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 
-type Student ={
-    id:number;
-    studentId:string;
-    name:string;
-    email?:string;
-    photo:string;
-    phone?:string;
-    grade:number;
-    class:string;
-    address:string;
-
-}
+type StudentList = Student & {class :Class}
 const columns =[
     {
         header:"Info",
@@ -58,29 +50,27 @@ const columns =[
        
     },
 ]
-const StudentList =() =>
-    
-{
-    const renderRow = (item:Student) =>
+
+const renderRow = (item:StudentList) =>
     (
         <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-purple-100">
         <td className="flex items-center gap-4 p-4">
-        <Image src={item.photo} alt=" " 
+        <Image src={item.img || "/noAvatar.png"} alt=" " 
         width={40} height={40}
         className="md:hidden xl:block w-10 h-10 rounded-full object-cover"/>
 
         <div className="flex flex-col">
             <h3 className="font-semibold">{item.name}</h3>
-            <p className="text-xs text-gray-500">{item.class}</p>
+            <p className="text-xs text-gray-500">{item.class.name}</p>
         </div>
         </td>
-        <td className="hidden md:table-cell">{item.studentId}</td>
-        <td className="hidden md:table-cell">{item.grade}</td>
+        <td className="hidden md:table-cell">{item.username}</td>
+        <td className="hidden md:table-cell">{item.class.name[0]}</td>
         <td className="hidden lg:table-cell">{item.phone}</td>
         <td className="hidden lg:table-cell">{item.address}</td>
         <td>
         <div className="flex items-center gap-2">
-        <Link href={ `/lists/teacher/${item.id}`}>
+        <Link href={ `/lists/students/${item.id}`}>
         <button className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100">
         <Image src="/view.png" alt="" width={16} height={16}/>
         </button>
@@ -97,6 +87,58 @@ const StudentList =() =>
         </tr>
     )
 
+const StudentList =async({searchParams,
+
+}:{
+    searchParams:{[key: string]: string|undefined};
+}) =>
+ {
+    const {page, ...queryParams} = searchParams;
+    const query : Prisma.StudentWhereInput = {};
+
+    if(queryParams)
+    {
+    for(const [key,value] of Object.entries(queryParams))
+    {
+        if(value !== undefined)
+        {
+            switch(key)
+            {
+                case "teacherId":
+                 query.class ={
+                    lessons:{
+                    some :{
+                        teacherId: value,
+                    },
+                }
+                 };
+                 break;
+                 case "search" :
+                    query.name ={contains:value , mode:"insensitive"}
+                break;
+                default:
+                    break;
+
+                }   
+            }
+        }
+    }
+    const p = page ? parseInt(page) : 1
+
+    const [data,count] = await  prisma.$transaction([
+       prisma.student.findMany({
+        where:query,
+        include :{
+           
+            class:true,
+        },
+        take:ITEM_PER_PAGE,
+        skip:ITEM_PER_PAGE*(p-1),
+        
+    }), 
+   prisma.student.count({where:query})
+])
+  
     return(
         <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
         {/* {top} */}
@@ -124,10 +166,10 @@ const StudentList =() =>
         </div>
         {/* {list} */}
         <div>
-        <Table columns={columns} renderRow={renderRow} data={studentsData}/>
+        <Table columns={columns} renderRow={renderRow} data={data}/>
         </div>
         {/* {pagination} */}
-         <Pagination/> 
+         <Pagination  page={p} count={count}/> 
         </div>
     )
 }
