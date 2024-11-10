@@ -2,14 +2,24 @@ import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import { role } from "@/app/lib/data";
 import prisma from "@/app/lib/prisma";
 import { ITEM_PER_PAGE } from "@/app/lib/setting";
+import { auth } from "@clerk/nextjs/server";
 import { Class, Prisma, Teacher } from "@prisma/client";
 import Image from "next/image";
 
 
 type ClassList = Class & {supervisor:Teacher}
+
+const ClassList = async({searchParams,
+
+}:{
+    searchParams:{[key: string]: string|undefined};
+}) =>
+ {
+const { userId, sessionClaims } = await auth();
+const role = (sessionClaims?.metadata as { role?: string })?.role;
+const currentUserId = userId;
 const columns =[
     {
         header:"Class Name",
@@ -37,11 +47,11 @@ const columns =[
 
     },
    
-    {
+   ...(role ==="admin" ? [{
         header:"Actions",
         accessor:"actions",
        
-    },
+    } ] : []),
 ]
 
 const renderRow = (item:ClassList) =>
@@ -68,12 +78,7 @@ const renderRow = (item:ClassList) =>
         </tr>
     )
 
-const ClassList = async({searchParams,
 
-}:{
-    searchParams:{[key: string]: string|undefined};
-}) =>
- {
     const {page, ...queryParams} = searchParams;
     const query : Prisma.ClassWhereInput = {};
 
@@ -129,9 +134,7 @@ const ClassList = async({searchParams,
         <button className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center">
         <Image src="/sort.png" alt="" width={14} height={14} />
         </button>
-       {/* {} <button className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center">
-        <Image src="/plus.png" alt="" width={14} height={14} />
-        </button> */}
+      
        {role === "admin" && (
 
                <FormModal table="classes" type="create" />

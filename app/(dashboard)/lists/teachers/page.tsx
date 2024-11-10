@@ -2,14 +2,25 @@ import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import { role,} from "@/app/lib/data";
 import prisma from "@/app/lib/prisma";
 import { ITEM_PER_PAGE } from "@/app/lib/setting";
+import { auth } from "@clerk/nextjs/server";
 import { Class, Prisma, Subject, Teacher } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 
 type TeacherList = Teacher & {subjects: Subject[]} & {classes:Class[]}
+
+const TeacherList = async({searchParams,
+
+}:{
+    searchParams:{[key: string]: string|undefined};
+}) =>
+ {
+
+    const { userId, sessionClaims } = await auth();
+    const role = (sessionClaims?.metadata as { role?: string })?.role
+    const currentUserId = userId;
 const columns =[
     {
         header:"Info",
@@ -48,12 +59,11 @@ const columns =[
         className:"hidden lg:table-cell",
 
     },
-    {
+    ...(role ==="admin" ? [{
         header:"Actions",
         accessor:"actions",
-        className:"hidden md:table-cell",
-
-    },
+       
+    }]: []),
 ]
 const renderRow = (item:TeacherList) =>
     (
@@ -90,12 +100,7 @@ const renderRow = (item:TeacherList) =>
         </td>
         </tr>
     )
-const TeacherList = async({searchParams,
 
-}:{
-    searchParams:{[key: string]: string|undefined};
-}) =>
- {
     const {page, ...queryParams} = searchParams;
     const query : Prisma.TeacherWhereInput = {};
 

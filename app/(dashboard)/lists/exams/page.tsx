@@ -5,6 +5,7 @@ import TableSearch from "@/app/components/TableSearch";
 import {     role } from "@/app/lib/data";
 import prisma from "@/app/lib/prisma";
 import { ITEM_PER_PAGE } from "@/app/lib/setting";
+import { auth } from "@clerk/nextjs/server";
 import { Class, Exam, Prisma, Subject, Teacher } from "@prisma/client";
 import Image from "next/image";
 
@@ -16,6 +17,17 @@ type ExamList = Exam & {
         teacher:Teacher
     }
 }
+
+const ExamList =async({searchParams,
+
+}:{
+    searchParams:{[key: string]: string|undefined};
+}) =>
+ {
+
+const { userId, sessionClaims } = await auth();
+const role = (sessionClaims?.metadata as { role?: string })?.role;
+const currentUserId = userId;
 const columns =[
     {
         header:"Subject Name",
@@ -43,11 +55,11 @@ const columns =[
     },
     
    
-    {
+   ...(role==="admin"||role ==="teacher" ? [{
         header:"Actions",
         accessor:"actions",
        
-    },
+    }]:[]),
 ]
 
 const renderRow = (item:ExamList) =>
@@ -74,15 +86,9 @@ const renderRow = (item:ExamList) =>
         </td>
         </tr>
     )
-    const ExamList =async({searchParams,
-
-    }:{
-        searchParams:{[key: string]: string|undefined};
-    }) =>
-     {
         const {page, ...queryParams} = searchParams;
         const query : Prisma.ExamWhereInput = {};
-    
+        query.lesson ={}
         if(queryParams)
         {
         for(const [key,value] of Object.entries(queryParams))
@@ -92,15 +98,13 @@ const renderRow = (item:ExamList) =>
                 switch(key)
                 {
                     case "teacherId" :
-                        query.lesson = {teacherId:value};
+                        query.lesson.teacherId = value;
                     break;
                     case "classId" :
-                        query.lesson = {classId:parseInt(value)};
+                        query.lesson.classId = parseInt(value);
                      case "search" :
-                        query.lesson ={
-                            subject: {
-                                name:{contains:value,mode:"insensitive"}
-                            }
+                        query.lesson.subject ={
+                              name:{contains:value,mode:"insensitive"}
                         }
                     break;
                     default:
@@ -109,6 +113,27 @@ const renderRow = (item:ExamList) =>
                     }   
                 }
             }
+        }
+
+        switch(role)
+        {
+            case "admin":
+                break;
+            case "teacher":
+                    query.lesson.teacherId = currentUserId!
+                break;
+            case "student":
+                query.lesson.class ={
+                    students :{
+                        some :{
+                            parentId : currentUserId!,
+                        }
+                    }
+                }
+            break;
+            default:
+            break;
+
         }
         const p = page ? parseInt(page) : 1
     

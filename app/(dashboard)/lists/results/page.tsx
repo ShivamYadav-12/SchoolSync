@@ -2,9 +2,9 @@ import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import { role } from "@/app/lib/data";
 import prisma from "@/app/lib/prisma";
 import { ITEM_PER_PAGE } from "@/app/lib/setting";
+import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import Image from "next/image";
 
@@ -21,6 +21,17 @@ type Result={
    
 
 }
+
+const ResultList =async({searchParams,
+
+}:{
+    searchParams:{[key: string]: string|undefined};
+}) =>
+ {
+    const { userId, sessionClaims } = await auth();
+    const role = (sessionClaims?.metadata as { role?: string })?.role
+    const currentUserId = userId;
+    
 const columns =[
     {
         header:"Subject Name",
@@ -64,11 +75,11 @@ const columns =[
     },
     
    
-    {
+    ...((role ==="admin" || role ==="teacher") ? [{
         header:"Actions",
         accessor:"actions",
        
-    },
+    }]: []),
 ]
 
 const renderRow = (item:Result) =>
@@ -98,12 +109,7 @@ const renderRow = (item:Result) =>
         </tr>
     )
 
-    const ResultList =async({searchParams,
 
-    }:{
-        searchParams:{[key: string]: string|undefined};
-    }) =>
-     {
         const {page, ...queryParams} = searchParams;
         const query : Prisma.ResultWhereInput = {};
     
@@ -132,6 +138,31 @@ const renderRow = (item:Result) =>
                     }   
                 }
             }
+        }
+
+        switch(role)
+        {
+            case "admin":
+                break;
+            case "teacher":
+                query.OR = [
+                    {exam :{lesson : { teacherId: currentUserId!}}},
+
+                   {assignment :{lesson : { teacherId: currentUserId!}}}
+                ]
+                break; 
+                case "student":
+                    query.studentId = currentUserId!
+                break;
+                case "parent":
+                    query.student = {
+                        parentId : currentUserId!
+                    }
+                break;
+
+              default:
+                break;
+
         }
         const p = page ? parseInt(page) : 1
     
@@ -210,7 +241,7 @@ const renderRow = (item:Result) =>
        {/* {} <button className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center">
         <Image src="/plus.png" alt="" width={14} height={14} />
         </button> */}
-        {role === "admin" && (
+        {(role === "admin" || role ==="teacher") && (
                <FormModal table="results" type="create" />
         )}
         </div>

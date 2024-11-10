@@ -2,13 +2,24 @@ import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import {   role } from "@/app/lib/data";
 import prisma from "@/app/lib/prisma";
 import { ITEM_PER_PAGE } from "@/app/lib/setting";
+import { auth } from "@clerk/nextjs/server";
 import { Class, Event, Prisma } from "@prisma/client";
 import Image from "next/image";
 
 type  EventList= Event & {class: Class}
+
+const EventList = async({searchParams,
+
+}:{
+    searchParams:{[key: string]: string|undefined};
+}) =>
+ {
+
+const { userId, sessionClaims } = await auth();
+const role = (sessionClaims?.metadata as { role?: string })?.role;
+const currentUserId = userId;
 const columns =[
     {
         header:"Title",
@@ -37,11 +48,11 @@ const columns =[
     },
     
    
-    {
+    ...(role ==="admin" ? [{
         header:"Actions",
         accessor:"actions",
        
-    },
+    }]:[]),
 ]
 
     const renderRow = (item:EventList) =>
@@ -51,7 +62,7 @@ const columns =[
 
         {item.title}
         </td>
-        <td >{item.class.name}</td>
+        <td >{item.class?.name || "-"}</td>
         <td className="hidden md:table-cell">{new Intl.DateTimeFormat("en-IN").format(item.startTime)}</td>
         <td className="hidden md:table-cell">{item.startTime.toLocaleTimeString("en-IN",{
             hour:'2-digit',
@@ -76,12 +87,7 @@ const columns =[
         </td>
         </tr>
     )
-    const EventList = async({searchParams,
-
-    }:{
-        searchParams:{[key: string]: string|undefined};
-    }) =>
-     {
+   
         const {page, ...queryParams} = searchParams;
         const query : Prisma.EventWhereInput = {};
     
@@ -104,6 +110,20 @@ const columns =[
                 }
             }
         }
+//ROLE CONDITIONS
+        const roleConditions = {
+            teacher :{ lessons :{some :{teacherId : currentUserId!}}},
+            student :{ students :{some :{id : currentUserId!}}},
+            parent :{ students :{some :{parentId : currentUserId!}}},
+        }
+
+        query.OR =[ 
+            {classId :null},
+            {
+                class:roleConditions[role as keyof typeof roleConditions] || {},
+            },
+
+        ];
         const p = page ? parseInt(page) : 1
     
         const [data,count] = await  prisma.$transaction([
